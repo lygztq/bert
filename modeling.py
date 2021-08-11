@@ -163,10 +163,12 @@ class BertModel(object):
     seq_length = input_shape[1]
 
     if input_mask is None:
-      input_mask = tf.ones(shape=[batch_size, seq_length], dtype=tf.int32)
+      # input_mask = tf.ones(shape=[batch_size, seq_length], dtype=tf.int32)
+      input_mask = tf.ones(shape=tf.shape(input_ids), dtype=tf.int32)
 
     if token_type_ids is None:
-      token_type_ids = tf.zeros(shape=[batch_size, seq_length], dtype=tf.int32)
+      # token_type_ids = tf.zeros(shape=[batch_size, seq_length], dtype=tf.int32)
+      token_type_ids = tf.zeros(shape=tf.shape(input_ids), dtype=tf.int32)
 
     with tf.variable_scope(scope, default_name="bert"):
       with tf.variable_scope("embeddings"):
@@ -224,7 +226,8 @@ class BertModel(object):
       with tf.variable_scope("pooler"):
         # We "pool" the model by simply taking the hidden state corresponding
         # to the first token. We assume that this has been pre-trained
-        first_token_tensor = tf.squeeze(self.sequence_output[:, 0:1, :], axis=1)
+        # first_token_tensor = tf.squeeze(self.sequence_output[:, 0:1, :], axis=1)
+        first_token_tensor = self.sequence_output[:, 0, :]
         self.pooled_output = tf.layers.dense(
             first_token_tensor,
             config.hidden_size,
@@ -546,8 +549,10 @@ def create_attention_mask_from_input_mask(from_tensor, to_mask):
   # tokens so we create a tensor of all ones.
   #
   # `broadcast_ones` = [batch_size, from_seq_length, 1]
-  broadcast_ones = tf.ones(
-      shape=[batch_size, from_seq_length, 1], dtype=tf.float32)
+  # broadcast_ones = tf.ones(
+  #     shape=[batch_size, from_seq_length, 1], dtype=tf.float32)
+  broadcast_ones = tf.ones(shape=tf.shape(from_tensor), dtype=tf.float32)
+  broadcast_ones = tf.expand_dims(broadcast_ones, -1)
 
   # Here we broadcast along two dimensions to create the mask.
   mask = broadcast_ones * to_mask
